@@ -1,0 +1,3 @@
+externalId: wf_icapi_data_pipeline
+description: Process ICe Cream Factory data workflow
+dataSetExternalId: {{ icapi_ds_external_id }}

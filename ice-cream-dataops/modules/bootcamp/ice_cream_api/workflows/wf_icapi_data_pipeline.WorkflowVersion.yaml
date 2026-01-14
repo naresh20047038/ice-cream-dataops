@@ -1,0 +1,56 @@
+workflowExternalId: wf_icapi_data_pipeline
+version: '1'
+workflowDefinition:
+  tasks:
+  - externalId: create_asset_hierarchy_transformation_task
+    type: 'transformation'
+    parameters:
+        transformation:
+          externalId: 'create_asset_hierarchy'
+          concurrencyPolicy: fail
+    name: 'asset Hierarchy transformation workflow'
+    description: Second task
+    retries: 3
+    timeout: 3600
+    onFailure: 'abortWorkflow'
+
+  - externalId: 'contextualize_ts_assets_task'
+    type: 'transformation'
+    parameters:
+        transformation:
+          externalId: 'contextualize_ts_assets'
+          concurrencyPolicy: fail
+    name: 'contextualize assets  task'
+    description: Second task
+    retries: 3
+    timeout: 3600
+    onFailure: 'abortWorkflow'
+    dependsOn:
+      -  externalId: create_asset_hierarchy_transformation_task
+
+  - externalId: icapi_datapoints_extractor_task
+    type: 'function'
+    parameters:
+      function:
+        externalId: icapi_datapoints_extractor
+        data: { "hours": 1 }
+    name: 'Extract icecream data '
+    description: Third task
+    retries: 3
+    timeout: 3600
+    onFailure: abortWorkflow
+    dependsOn:
+      - externalId: contextualize_ts_assets_task
+    
+  - externalId: oee_timeseries_task
+    type: 'function'
+    parameters:
+      function:
+        externalId: oee_timeseries
+    name: 'Run calculations on time series'
+    description: Third task
+    retries: 3
+    timeout: 3600
+    onFailure: abortWorkflow
+    dependsOn:
+      - externalId: icapi_datapoints_extractor_task
